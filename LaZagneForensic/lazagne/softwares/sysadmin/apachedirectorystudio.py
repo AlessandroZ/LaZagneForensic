@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*- 
+from lazagne.config.write_output import print_debug
+from lazagne.config.moduleInfo import ModuleInfo
+from lazagne.config.utils import build_path
+from lazagne.config.constant import *
+import xml.etree.ElementTree as ET
+import os
+
+class ApacheDirectoryStudio(ModuleInfo):
+
+	def __init__(self):
+		ModuleInfo.__init__(self, 'apachedirectorystudio', 'sysadmin')
+		
+		# Interesting XML attributes in ADS connection configuration
+		self.attr_to_extract = ["host", "port", "bindPrincipal", "bindPassword", "authMethod"]
+
+
+	def extract_connections_credentials(self, path):
+		"""
+		Extract all connection's credentials.
+
+		:return: List of dict in which one dict contains all information for a connection.
+		"""
+		repos_creds = []
+		connection_file_location = os.path.join(path, u'connections.xml')
+		if os.path.isfile(connection_file_location):
+			try:
+				connections = ET.parse(connection_file_location).getroot()
+				connection_nodes = connections.findall(".//connection")
+				for connection_node in connection_nodes:
+					creds = {}
+					for connection_attr_name in connection_node.attrib:
+						if connection_attr_name in self.attr_to_extract:
+							creds[connection_attr_name] = connection_node.attrib[connection_attr_name].strip()
+					if creds:
+						repos_creds.append(creds)
+			except Exception as e:
+				print_debug("ERROR", "Cannot retrieve connections credentials '%s'" % e)
+				pass
+
+		return repos_creds
+
+
+	def run(self, software_name=None):
+		"""
+		Main function
+		"""
+		# Extract all available connections credentials
+		path = build_path(software_name)
+		if path:
+			repos_creds = self.extract_connections_credentials(path)
+
+			# Parse and process the list of connections credentials
+			pwd_found = []
+			for creds in repos_creds:
+				pwd_found.append(
+					{
+						"Host"                  : creds["host"], 
+						"Port"                  : creds["port"], 
+						"Login"                 : creds["bindPrincipal"], 
+						"Password"              : creds["bindPassword"], 
+						"AuthenticationMethod"  : creds["authMethod"] 
+					}
+				)
+
+			return pwd_found
