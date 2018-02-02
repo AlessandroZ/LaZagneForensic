@@ -233,7 +233,16 @@ def get_user_list_on_filesystem():
 
 	return all_users
 
-def runLaZagne(category_choosed='all'):
+def runLaZagne(category_choosed='all', password=None, pwdhash=None, dump=None, root_dump=None, quiet_mode=None):
+
+	# These if statement are only useful if other tools call this function
+	if dump:
+		constant.dump = dump
+	if root_dump:
+		constant.root_dump = root_dump
+	if quiet_mode:
+		constant.quiet_mode = quiet_mode
+
 	# Ready to check for all users remaining
 	all_users = get_user_list_on_filesystem()
 	for user in all_users:
@@ -243,7 +252,7 @@ def runLaZagne(category_choosed='all'):
 		constant.finalResults 	= {'User': user}
 		yield 'User', user
 		
-		constant.user_dpapi = Decrypt_DPAPI(password=constant.user_password, pwdhash=constant.user_pwdhash)
+		constant.user_dpapi = Decrypt_DPAPI(password=password, pwdhash=pwdhash)
 
 		for r in runModule(category_choosed, system_module=False):
 			yield r
@@ -258,8 +267,6 @@ def runLaZagne(category_choosed='all'):
 	yield 'User', constant.username
 	for r in runModule(category_choosed, system_module=True):
 		yield r
-
-
 
 if __name__ == '__main__':
 
@@ -363,7 +370,7 @@ if __name__ == '__main__':
 	
 	start_time = time.time()
 
-	for r in runLaZagne(category_choosed):
+	for r in runLaZagne(category_choosed=category_choosed, password=constant.user_password, pwdhash=constant.user_pwdhash):
 		pass
 
 	write_in_file(stdoutRes)

@@ -19,8 +19,8 @@
 
 import array
 import struct
-from DPAPI import probe
-from DPAPI.Core import blob
+from lazagne.config.modules.DPAPI import probe
+from lazagne.config.modules.DPAPI.Core import blob
 
 
 class GTalkAccount(probe.DPAPIProbe):

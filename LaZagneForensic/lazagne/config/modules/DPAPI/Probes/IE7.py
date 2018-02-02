@@ -18,9 +18,9 @@
 #############################################################################
 
 import hashlib
-from DPAPI import probe
-from DPAPI.Core import blob
-from DPAPI.Core import eater
+from lazagne.config.modules.DPAPI import probe
+from lazagne.config.modules.DPAPI.Core import blob
+from lazagne.config.modules.DPAPI.Core import eater
 
 
 class IE7Autocomplete(probe.DPAPIProbe):

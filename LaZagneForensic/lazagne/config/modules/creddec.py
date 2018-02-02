@@ -16,9 +16,9 @@
 # limitations under the License.
 """Decrypt Windows Credential files."""
 
-from DPAPI.Core import blob
-from DPAPI.Core import masterkey
-from DPAPI.Core import registry
+from lazagne.config.modules.DPAPI.Core import blob
+from lazagne.config.modules.DPAPI.Core import masterkey
+from lazagne.config.modules.DPAPI.Core import registry
 import vaultstruct
 
 def decrypt_blob(mkp, blob):

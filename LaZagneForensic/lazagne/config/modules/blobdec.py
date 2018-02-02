@@ -16,9 +16,9 @@
 # limitations under the License.
 """ Windows DPAPI BLOB decryption utility."""
 
-from DPAPI.Core import masterkey
-from DPAPI.Core import registry
-from DPAPI.Core import blob
+from lazagne.config.modules.DPAPI.Core import masterkey
+from lazagne.config.modules.DPAPI.Core import registry
+from lazagne.config.modules.DPAPI.Core import blob
 
 def decrypt_encrypted_blob(mkp, encrypted_password, entropy_hex=None):
 	blob_value  = blob.DPAPIBlob(encrypted_password)

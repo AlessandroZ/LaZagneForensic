@@ -19,8 +19,8 @@
 
 import struct
 import hashlib
-from DPAPI.Core import crypto
-from DPAPI.Core import eater
+from lazagne.config.modules.DPAPI.Core import crypto
+from lazagne.config.modules.DPAPI.Core import eater
 
 
 class RPC_SID(eater.DataStruct):

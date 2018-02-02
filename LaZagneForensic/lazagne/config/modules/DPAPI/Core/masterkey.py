@@ -23,7 +23,7 @@ import re
 from collections import defaultdict
 import cPickle
 
-from DPAPI.Core import eater, credhist, crypto
+from lazagne.config.modules.DPAPI.Core import eater, credhist, crypto
 from lazagne.config.write_output import print_debug
 from lazagne.config.constant import *
 

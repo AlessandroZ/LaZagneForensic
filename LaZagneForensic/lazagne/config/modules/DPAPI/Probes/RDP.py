@@ -16,8 +16,8 @@
 ##                                                                         ##
 #############################################################################
 
-from DPAPI.probe import DPAPIProbe
-from DPAPI.Core import blob
+from lazagne.config.modules.DPAPI.probe import DPAPIProbe
+from lazagne.config.modules.DPAPI.Core import blob
 from collections import defaultdict
 
 

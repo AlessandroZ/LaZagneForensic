@@ -17,9 +17,9 @@
 """TODO."""
 
 from Crypto.Cipher import AES
-from DPAPI.Core import blob
-from DPAPI.Core import masterkey
-from DPAPI.Core import registry
+from lazagne.config.modules.DPAPI.Core import blob
+from lazagne.config.modules.DPAPI.Core import masterkey
+from lazagne.config.modules.DPAPI.Core import registry
 import vaultschema
 import vaultstruct
 import construct

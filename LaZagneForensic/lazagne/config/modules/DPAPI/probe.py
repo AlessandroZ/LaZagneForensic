@@ -17,7 +17,7 @@
 ##                                                                         ##
 #############################################################################
 
-from DPAPI.Core import blob, eater
+from lazagne.config.modules.DPAPI.Core import blob, eater
 
 
 class DPAPIProbe(eater.DataStruct):

@@ -17,8 +17,8 @@
 ##                                                                         ##
 #############################################################################
 
-from DPAPI.Core import crypto
-from DPAPI.Core import eater
+from lazagne.config.modules.DPAPI.Core import crypto
+from lazagne.config.modules.DPAPI.Core import eater
 
 
 class DPAPIBlob(eater.DataStruct):

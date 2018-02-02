@@ -22,8 +22,8 @@ import hashlib
 import struct
 import array
 from Crypto.Cipher import AES
-from DPAPI import probe
-from DPAPI.Core import blob
+from lazagne.config.modules.DPAPI import probe
+from lazagne.config.modules.DPAPI.Core import blob
 
 
 class SkypeAccount(probe.DPAPIProbe):

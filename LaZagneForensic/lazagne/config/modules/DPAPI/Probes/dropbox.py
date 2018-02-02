@@ -28,8 +28,8 @@
 ##                                                                         ##
 #############################################################################
 
-from DPAPI import probe
-from DPAPI.Core import blob
+from lazagne.config.modules.DPAPI import probe
+from lazagne.config.modules.DPAPI.Core import blob
 import hmac
 from Crypto.Protocol import KDF
 
