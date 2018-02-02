@@ -361,7 +361,6 @@ function Dump
 							)
 	}
 
-
 	# --- DPAPI ---
 	$dst = $systemFolder + '\' + $dpapi_system['name']
 	CheckFiles $dst '' $dpapi_system
@@ -377,8 +376,5 @@ function Dump
 	# saves system hives from registry
 	SaveHives($systemFolder + '\' + 'Hives')
 
-	if (!(Test-Path $Out))
-	{
-		Write-Out "File created successfully !"
-	}
+	"Folder " + $Out + " created successfully !"
 }	

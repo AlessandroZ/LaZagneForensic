@@ -26,7 +26,7 @@ Usage
 ```
 PS C:\Users\test\Desktop> Import-Module .\dump.ps1
 PS C:\Users\test\Desktop> Dump
-File dump created successfully !
+Folder dump created successfully !
 ```
 * Using the python [script](https://github.com/AlessandroZ/LaZagneForensic/blob/master/dump/dump.py)
 ```
