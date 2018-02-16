@@ -70,7 +70,7 @@ class Decrypt_DPAPI():
 						self.umkp.addCredhistFile(self.sid, credhist)
 					
 					if password:
-						if self.umkp.try_credential(self.sid, str(password)):
+						if self.try_credential(password):
 							self.dpapi_ok = True
 						else:
 							print_debug('DEBUG', u'Password not correct: {password}'.format(password=password))
@@ -108,6 +108,11 @@ class Decrypt_DPAPI():
 								self.smkp.addSystemCredential(dpapi_system)
 								self.smkp.try_credential_hash(None, None)
 
+	def try_credential(self, password):
+		try:
+			return self.umkp.try_credential(self.sid, password)
+		except:
+			return False
 
 	def check_credentials(self, passwords):
 		# the password is tested if possible only on the last masterkey file created by the system (visible on the preferred file) to avoid false positive
@@ -118,7 +123,7 @@ class Decrypt_DPAPI():
 		if self.umkp:
 			for password in passwords:
 				print_debug('INFO', u'Check password: {password}'.format(password=password))
-				if self.umkp.try_credential(self.sid, password):
+				if self.try_credential(password):
 					print_debug('INFO', u'User password found: {password}\n'.format(password=password))
 					self.dpapi_ok = True
 					return password
