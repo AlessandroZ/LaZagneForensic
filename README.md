@@ -6,7 +6,7 @@ Description
 ----
 The __LaZagne project__ is back !!! 
 
-[LaZagne](https://github.com/AlessandroZ/LaZagne) uses an internal Windows API called *CryptUnprotectData* to decrypt user passwords. This API should be called on the victim user session, otherwise, it does not work. If the computer has not been started (when the analysis is realized on an offline mounted disk), or if we do not want to drop a binary on the remote host, no passwords can be retrieved. 
+[LaZagne](https://github.com/AlessandroZ/LaZagne) uses an internal Windows function called *CryptUnprotectData* to decrypt user passwords. This API should be called on the victim user session, otherwise, it does not work. If the computer has not been started (when the analysis is realized on an offline mounted disk), or if we do not want to drop a binary on the remote host, no passwords can be retrieved. 
 
 [LaZagneForensic](https://github.com/AlessandroZ/LaZagneForensic) has been created to avoid this problem. This work has been mainly inspired by the awesome work done by *Jean-Michel Picod* for [DPAPICK](https://bitbucket.org/jmichel/dpapick) and *Francesco Picasso* for [Windows DPAPI laboratory](https://github.com/dfirfpi/dpapilab). 
 
