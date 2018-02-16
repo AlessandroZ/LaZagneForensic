@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- 
 from creddump7.win32.lsasecrets import get_file_secrets
-from lazagne.config.write_output import print_debug
 from lazagne.config.moduleInfo import ModuleInfo
 from lazagne.config.utils import build_path
 from lazagne.config.constant import *

@@ -44,6 +44,13 @@ for module in moduleNames:
 modules['mails']['thunderbird'] = Mozilla(True) # For thunderbird (firefox and thunderbird use the same class)
 
 def output():
+	if args['output']:
+		if os.path.isdir(args['output']):
+			constant.folder_name = args['output']
+		else:
+			print '[!] Specify a directory, not a file !'
+			sys.exit()
+
 	if args['write_normal']:
 		constant.output = 'txt'
 	
@@ -87,6 +94,21 @@ def verbosity():
 	root.addHandler(stream)
 	del args['verbose']
 
+def run_module(title, module):
+	try:
+		constant.st.title_info(title.capitalize()) 					# print title
+		pwdFound = module.run(title.capitalize())					# run the module
+		constant.st.print_output(title.capitalize(), pwdFound) 		# print the results
+		
+		# Return value - not used but needed
+		yield True, title.capitalize(), pwdFound
+	except:
+		traceback.print_exc()
+		print
+		error_message = traceback.format_exc()
+		yield False, title.capitalize(), error_message
+
+
 def launch_module(module, system_module=False):
 	modulesToLaunch = []
 	try:
@@ -102,60 +124,23 @@ def launch_module(module, system_module=False):
 	if not modulesToLaunch:
 		modulesToLaunch = module
 	
-	module_to_execute_at_end = []
-
 	for i in modulesToLaunch:
 
 		if system_module ^ module[i].system_module:
 			continue
 
 		if module[i].dpapi_used:
-			module_to_execute_at_end.append(
+			constant.module_to_exec_at_end.append(
 												{
 													'title'		: i,
 													'module' 	: module[i],
 												}
-											)
+)
 			continue
 
-		try:
-			constant.st.title_info(i.capitalize()) 					# print title
-			pwdFound = module[i].run(i.capitalize())				# run the module
-			constant.st.print_output(i.capitalize(), pwdFound) 		# print the results
-			
-			# Return value - not used but needed
-			yield True, i.capitalize(), pwdFound
-		except:
-			traceback.print_exc()
-			print
-			error_message = traceback.format_exc()
-			yield False, i.capitalize(), error_message
-
-	if constant.user_dpapi:
-		if not constant.user_dpapi.dpapi_ok:
-			# add username to check username equals passwords
-			constant.passwordFound.append(constant.username)
-			constant.user_dpapi.check_credentials(constant.passwordFound)
-
-		if constant.user_dpapi.dpapi_ok:
-
-			# execute module using dpapi at end
-			for module in module_to_execute_at_end:
-				try:
-					constant.st.title_info(module['title'].capitalize()) 					# print title
-					pwdFound = module['module'].run(module['title'].capitalize())			# run the module
-					constant.st.print_output(module['title'].capitalize(), pwdFound) 		# print the results
-					
-					# Return value - not used but needed
-					yield True, module['title'].capitalize(), pwdFound
-				except:
-					traceback.print_exc()
-					print
-					error_message = traceback.format_exc()
-					yield False, i.capitalize(), error_message
-	else:
-		print_debug('INFO', 'User password seems to be wrong. Cannot execute module using dpapi \n')
-
+		# run module
+		for m in run_module(title=i, module=module[i]):
+			yield m
 
 def manage_advanced_options():
 	# File used for dictionary attacks
@@ -190,9 +175,28 @@ def runModule(category_choosed, system_module=False):
 	if category_choosed != 'all':
 		category = [category_choosed]
 
+	constant.module_to_exec_at_end = []
 	for categoryName in category:
 		for r in launch_module(modules[categoryName], system_module):
 			yield r
+
+	if constant.module_to_exec_at_end:
+		if constant.user_dpapi:
+			password = ''
+			if not constant.user_dpapi.dpapi_ok:
+				# add username to check username equals passwords
+				constant.passwordFound.append(constant.username)
+				password = constant.user_dpapi.check_credentials(constant.passwordFound)
+
+			if constant.user_dpapi.dpapi_ok:
+				if password:
+					# reload new object with correct password
+					constant.user_dpapi = Decrypt_DPAPI(password=password)
+				
+				for module in constant.module_to_exec_at_end:
+					for m in run_module(title=module['title'], module=module['module']):
+						yield m
+
 
 # Write output to file (json and txt files)
 def write_in_file(result):
@@ -202,25 +206,25 @@ def write_in_file(result):
 			prettyJson = json.dumps(result, sort_keys=True, indent=4, separators=(',', ': '))
 			with open(os.path.join(constant.folder_name, constant.file_name_results + '.json'), 'a+b') as f:
 				f.write(prettyJson.decode('unicode-escape').encode('UTF-8'))
-			constant.st.do_print('[+] File written: {file}'.format(file=os.path.join(constant.folder_name, constant.file_name_results + '.json')))
+			constant.st.do_print(u'[+] File written: {file}'.format(file=os.path.join(constant.folder_name, constant.file_name_results + '.json')))
 		except Exception as e:
-			print_debug('ERROR', 'Error writing the output file: {error}'.format(error=e))
+			print_debug('ERROR', u'Error writing the output file: {error}'.format(error=e))
 
 	if constant.output == 'txt' or constant.output == 'all':
 		try:
 			with open(os.path.join(constant.folder_name, constant.file_name_results + '.txt'), 'a+b') as f:
 				f.write(parseJsonResultToBuffer(result).encode("UTF-8"))
 			constant.st.write_footer()
-			constant.st.do_print('[+] File written: {file}'.format(file=os.path.join(constant.folder_name, constant.file_name_results + '.txt')))
+			constant.st.do_print(u'[+] File written: {file}'.format(file=os.path.join(constant.folder_name, constant.file_name_results + '.txt')))
 		except Exception as e:
-			print_debug('ERROR', 'Error writing the output file: {error}'.format(error=e))
+			print_debug('ERROR', u'Error writing the output file: {error}'.format(error=e))
 
 # Get user list to retrieve  their passwords
 def get_user_list_on_filesystem():
 	user_path = os.path.join(constant.root_dump, 'Users')
 
 	if not constant.root_dump or not os.path.exists(user_path):
-		print_debug('ERROR', 'Specify a correct path with -remote or -local options')
+		print_debug('ERROR', u'Specify a correct path with -remote or -local options')
 		return []
 
 	# Check existing users on the system (get only directories)
@@ -248,7 +252,7 @@ def runLaZagne(category_choosed='all', password=None, pwdhash=None, dump=None, r
 	for user in all_users:
 		constant.st.print_user(user)
 		
-		constant.username  		= user
+		constant.username  		= user.decode('utf-8')
 		constant.finalResults 	= {'User': user}
 		yield 'User', user
 		
@@ -260,13 +264,15 @@ def runLaZagne(category_choosed='all', password=None, pwdhash=None, dump=None, r
 		stdoutRes.append(constant.finalResults)
 
 	# System modules (hashdump, lsa secrets, etc.)
-	constant.username  		= 'SYSTEM'
+	constant.username  		= 'SYSTEM'.decode('utf-8')
 	constant.finalResults 	= {'User': constant.username}
 	constant.st.print_user(constant.username)
 	
 	yield 'User', constant.username
 	for r in runModule(category_choosed, system_module=True):
 		yield r
+
+	stdoutRes.append(constant.finalResults)
 
 if __name__ == '__main__':
 
@@ -285,21 +291,22 @@ if __name__ == '__main__':
 	# Dump directory 
 	PDump = argparse.ArgumentParser(add_help=False, formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=constant.MAX_HELP_POSITION))
 	PDump._optionals.title = 'Dump directory'
-	PDump.add_argument('-remote', 	dest='remote', 	action='store', default=False, help='path of the dump done on the remote host')
-	PDump.add_argument('-local', 	dest='local', 	action='store', default=False, help='path of the mounted drive')
+	PDump.add_argument('-remote', 	dest='remote', 			action='store', 		default=False, help='path of the dump done on the remote host')
+	PDump.add_argument('-local', 	dest='local', 			action='store', 		default=False, help='path of the mounted drive')
 
 	# Decrypt passwords
 	Ppwd = argparse.ArgumentParser(add_help=False, formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=constant.MAX_HELP_POSITION))
 	Ppwd._optionals.title = 'Needed to decrypt all passwords (by DPAPI)'
-	Ppwd.add_argument('-password', 	dest='password', action='store', default=False, help='Windows user password')
-	Ppwd.add_argument('-pwdhash', 	dest='pwdhash',  action='store', default=False, help='Windows user hash (not NTLM hash)')
+	Ppwd.add_argument('-password', 	dest='password', 		action='store', 		default=False, help='Windows user password')
+	Ppwd.add_argument('-pwdhash', 	dest='pwdhash',  		action='store', 		default=False, help='Windows user hash (not NTLM hash)')
 
 	# Output 
 	PWrite = argparse.ArgumentParser(add_help=False, formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=constant.MAX_HELP_POSITION))
 	PWrite._optionals.title = 'Output'
-	PWrite.add_argument('-oN', dest='write_normal', action='store_true', help='output file in a readable format')
-	PWrite.add_argument('-oJ', dest='write_json',	action='store_true', help='output file in a json format')
-	PWrite.add_argument('-oA', dest='write_all', 	action='store_true', help='output file in all format')
+	PWrite.add_argument('-oN', 		dest='write_normal', 	action='store_true', 	default=None, 	help='output file in a readable format')
+	PWrite.add_argument('-oJ', 		dest='write_json',		action='store_true', 	default=None, 	help='output file in a json format')
+	PWrite.add_argument('-oA', 		dest='write_all', 		action='store_true', 	default=None, 	help='output file in all format')
+	PWrite.add_argument('-output', 	dest='output', 			action='store', 		default='.', 	help='destination path to store results (default:.)')
 
 	# ------------------------------------------- Add options and suboptions to all modules -------------------------------------------
 	all_subparser = []

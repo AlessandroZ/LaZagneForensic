@@ -18,7 +18,7 @@ class Opera(ModuleInfo):
 			pwdFound = []
 			database_path = os.path.join(path, u'Login Data')
 			if not os.path.exists(database_path):
-				print_debug('INFO', 'User database not found: {database_path}'.format(database_path=database_path))
+				print_debug('INFO', u'User database not found: {database_path}'.format(database_path=database_path))
 				return
 
 			# Connect to the Database
@@ -26,7 +26,7 @@ class Opera(ModuleInfo):
 				conn 	= sqlite3.connect(database_path)
 				cursor 	= conn.cursor()
 			except Exception,e:
-				print_debug('ERROR', 'An error occured opening the database file')
+				print_debug('ERROR', u'An error occured opening the database file')
 				print_debug('DEBUG', traceback.format_exc())
 				return 
 

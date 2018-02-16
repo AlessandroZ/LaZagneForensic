@@ -17,8 +17,8 @@ class DPAPIHash(ModuleInfo):
 		constant.user_dpapi.get_DPAPI_hash(context=context)
 		if constant.dpapi_hash:
 			h = {
-						'DPAPI_Hash_{context}'.format(context=context.capitalize()) : constant.dpapi_hash
-					}
+					'DPAPI_Hash_{context}'.format(context=context.capitalize()) : constant.dpapi_hash
+				}
 			constant.dpapi_hash = None
 			return  h
 		else:

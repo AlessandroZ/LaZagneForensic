@@ -22,16 +22,16 @@ class Decrypt_DPAPI():
 		self.umkp 					= None
 		self.smkp 					= None
 		self.last_masterkey_file	= None
-		adding_missing_path 		= ''
+		adding_missing_path 		= u''
 		
 		# -------------------------- User Information --------------------------
 
 		path = build_path('DPAPI')
 		if constant.dump == 'local':
-			adding_missing_path 	= '/Microsoft'
+			adding_missing_path 	= u'/Microsoft'
 
 		if path:
-			protect_folder = os.path.join(path, 'Roaming{path}/Protect'.format(path=adding_missing_path))
+			protect_folder = os.path.join(path, u'Roaming{path}/Protect'.format(path=adding_missing_path))
 			if os.path.exists(protect_folder):
 				for folder in os.listdir(protect_folder):
 					if folder.startswith('S-'):
@@ -51,8 +51,15 @@ class Decrypt_DPAPI():
 						
 						# Preferred file contains the GUID of the last mastekey created
 						self.last_masterkey_file	= os.path.join(masterkeydir, preferred_mk_guid)
+						
+						# Be sure the preferred mk guid exists, otherwise take the one which have a similar name (sometimes an error occured retreiving the guid)
+						if not os.path.exists(self.last_masterkey_file):
+							for folder in os.listdir(masterkeydir):
+								if folder.startswith(preferred_mk_guid[:6]):
+									self.last_masterkey_file = os.path.join(masterkeydir, folder)
+
 						if os.path.exists(self.last_masterkey_file):
-							print_debug('DEBUG', 'Last masterkey created: {masterkefile}'.format(masterkefile=self.last_masterkey_file))
+							print_debug('DEBUG', u'Last masterkey created: {masterkefile}'.format(masterkefile=self.last_masterkey_file))
 							self.preferred_umkp = masterkey.MasterKeyPool()
 							self.preferred_umkp.addMasterKey(open(self.last_masterkey_file, 'rb').read())
 
@@ -63,16 +70,16 @@ class Decrypt_DPAPI():
 						self.umkp.addCredhistFile(self.sid, credhist)
 					
 					if password:
-						if self.umkp.try_credential(self.sid, password):
+						if self.umkp.try_credential(self.sid, str(password)):
 							self.dpapi_ok = True
 						else:
-							print_debug('DEBUG', 'Password not correct: {password}'.format(password=password))
+							print_debug('DEBUG', u'Password not correct: {password}'.format(password=password))
 
 					elif pwdhash:
 						if self.umkp.try_credential_hash(self.sid, pwdhash.decode('hex')):
 							self.dpapi_ok = True
 						else:
-							print_debug('DEBUG', 'Hash not correct: {pwdhash}'.format(pwdhash=pwdhash))
+							print_debug('DEBUG', u'Hash not correct: {pwdhash}'.format(pwdhash=pwdhash))
 
 		# -------------------------- System Information --------------------------
 
@@ -105,14 +112,16 @@ class Decrypt_DPAPI():
 	def check_credentials(self, passwords):
 		# the password is tested if possible only on the last masterkey file created by the system (visible on the preferred file) to avoid false positive
 		# if tested on all masterkey files, it could retrieve a password without to be able to decrypt a blob (happenned on my host :))
-		mk = self.preferred_umkp if self.preferred_umkp is not None else self.umkp
-		if mk:
+		if self.preferred_umkp:
+			self.umkp = self.preferred_umkp
+
+		if self.umkp:
 			for password in passwords:
-				print_debug('INFO', 'Check password: {password}'.format(password=password))
-				if mk.try_credential(self.sid, password):
-					print_debug('OK', 'User password found: {password}\n'.format(password=password))
+				print_debug('INFO', u'Check password: {password}'.format(password=password))
+				if self.umkp.try_credential(self.sid, password):
+					print_debug('INFO', u'User password found: {password}\n'.format(password=password))
 					self.dpapi_ok = True
-					return True
+					return password
 
 		return False
 
@@ -122,9 +131,9 @@ class Decrypt_DPAPI():
 			if ok: 
 				return msg
 			else:
-				print_debug('DEBUG', msg)
+				print_debug('DEBUG', u'{msg}'.format(msg=msg))
 		else:
-			print_debug('INFO', 'Passwords have not been retrieved. User password seems to be wrong ')
+			print_debug('INFO', u'Passwords have not been retrieved. User password seems to be wrong ')
 		
 		return False
 
@@ -134,9 +143,9 @@ class Decrypt_DPAPI():
 			if ok: 
 				return msg
 			else:
-				print_debug('DEBUG', msg)
+				print_debug('DEBUG', u'{msg}'.format(msg=msg))
 		else:
-			print_debug('INFO', 'Passwords have not been retrieved. User password seems to be wrong ')
+			print_debug('INFO', u'Passwords have not been retrieved. User password seems to be wrong ')
 		
 		return False
 		
@@ -146,14 +155,14 @@ class Decrypt_DPAPI():
 			if ok: 
 				return msg
 			else:
-				print_debug('DEBUG', 'File: {file}\n{msg}'.format(file=vaults_dir, msg=msg))
+				print_debug('DEBUG', u'File: {file}\n{msg}'.format(file=vaults_dir, msg=msg))
 		else:
-			print_debug('INFO', 'Passwords have not been retrieved. User password seems to be wrong ')
+			print_debug('INFO', u'Passwords have not been retrieved. User password seems to be wrong ')
 		
 		return False
 
 	def get_DPAPI_hash(self, context='local'):
-		if self.umkp:
+		if self.umkp and self.last_masterkey_file:
 			self.umkp.get_john_hash(masterkeyfile=self.last_masterkey_file, sid=self.sid, context=context)
 
 	def decrypt_wifi_blob(self, key_material):
@@ -175,8 +184,8 @@ class Decrypt_DPAPI():
 			if ok:
 				return msg
 			else:
-				print_debug('DEBUG', 'File: {file}\n{msg}\n'.format(file=vaults_dir, msg=msg))
+				print_debug('DEBUG', u'File: {file}\n{msg}\n'.format(file=vaults_dir, msg=msg))
 		else:
-			print_debug('INFO', 'Passwords have not been retrieved. User password seems to be wrong ')
+			print_debug('INFO', u'Passwords have not been retrieved. User password seems to be wrong ')
 		
 		return False

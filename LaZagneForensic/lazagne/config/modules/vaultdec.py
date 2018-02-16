@@ -37,12 +37,12 @@ def decrypt_blob(mkp, blob):
 				if blob.decrypted:
 					break
 	else:
-		return False, 'MasterKey not found for blob.'
+		return False, u'MasterKey not found for blob.'
 
 	if blob.decrypted:
 		return True, blob.cleartext
 	
-	return False, ''
+	return False, u''
 
 	
 def decrypt_vault_attribute(vault_attr, key_aes128, key_aes256):
@@ -77,7 +77,7 @@ def get_vault_schema(guid, base_dir, default_schema):
 def decrypt_vault(mkp=None, vaults_dir=None):
 	vpol_filename = os.path.join(os.path.sep, vaults_dir, 'Policy.vpol')
 	if not os.path.exists(vpol_filename):
-		return False, 'Policy file not found: {file}'.format(file=vpol_filename)
+		return False, u'Policy file not found: {file}'.format(file=vpol_filename)
 
 	with open(vpol_filename, 'rb') as fin:
 		vpol = vaultstruct.VAULT_POL.parse(fin.read())
@@ -86,7 +86,7 @@ def decrypt_vault(mkp=None, vaults_dir=None):
 
 	ok, vpol_decrypted = decrypt_blob(mkp, vpol_blob)
 	if not ok:
-		return False, 'Unable to decrypt blob. {message}'.format(message=vpol_decrypted)
+		return False, u'Unable to decrypt blob. {message}'.format(message=vpol_decrypted)
 
 	vpol_keys = vaultstruct.VAULT_POL_KEYS.parse(vpol_decrypted)
 

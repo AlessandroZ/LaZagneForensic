@@ -172,3 +172,4 @@ class constant():
 	user_password 			= None
 	user_pwdhash 			= None
 	dpapi_hash				= None
+	module_to_exec_at_end	= []

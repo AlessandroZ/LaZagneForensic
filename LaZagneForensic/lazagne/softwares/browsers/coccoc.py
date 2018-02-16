@@ -26,7 +26,7 @@ class CocCoc(ModuleInfo):
 					conn 	= sqlite3.connect(database_path)
 					cursor 	= conn.cursor()
 				except Exception,e:
-					print_debug('ERROR', 'An error occured opening the database file')
+					print_debug('ERROR', u'An error occured opening the database file')
 					print_debug('DEBUG', traceback.format_exc())
 					continue 
 				
