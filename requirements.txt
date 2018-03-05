@@ -1,1 +1,4 @@
-construct==2.5.5-reupload
+pycrypto
+pyasn1
+construct
+https://github.com/williballenthin/python-registry/archive/master.zip
