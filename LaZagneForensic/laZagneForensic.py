@@ -143,13 +143,7 @@ def launch_module(module, system_module=False):
 			yield m
 
 def manage_advanced_options():
-	# File used for dictionary attacks
-	if args.get('path', None):
-		constant.path = args['path']
-	
-	if args.get('bruteforce', None):
-		constant.bruteforce = args['bruteforce']
-	
+
 	# Jitsi advanced options
 	if args.get('master_pwd', None):
 		constant.jitsi_masterpass = args['master_pwd']
@@ -278,9 +272,7 @@ if __name__ == '__main__':
 	PPoptional._optionals.title = 'optional arguments'
 	PPoptional.add_argument('-v', 		dest='verbose', 	action='count', 		default=0, 		help='increase verbosity level')
 	PPoptional.add_argument('-quiet', 	dest='quiet', 		action='store_true', 	default=False, 	help='nothing is printed to the output')
-	PPoptional.add_argument('-path', 	dest='path', 		action='store', 		default=False, 	help='path of a file used for dictionary file')
-	PPoptional.add_argument('-b', 		dest='bruteforce', 	action='store', 		default=False, 	help='number of character to brute force')
-
+	
 	# Dump directory 
 	PDump = argparse.ArgumentParser(add_help=False, formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=constant.MAX_HELP_POSITION))
 	PDump._optionals.title = 'Dump directory'

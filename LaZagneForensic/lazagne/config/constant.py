@@ -15,10 +15,6 @@ class constant():
 	
 	# jitsi options
 	jitsi_masterpass 		= None
-
-	# mozilla options
-	path 					= None
-	bruteforce 				= None
 	
 	# total password found
 	nbPasswordFound 		= 0
