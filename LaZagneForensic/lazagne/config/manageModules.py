@@ -29,13 +29,13 @@ from lazagne.softwares.svn.tortoise import Tortoise
 from lazagne.softwares.wifi.wifi import Wifi
 
 # windows
-from lazagne.softwares.windows.dpapi_hash import DPAPIHash
 from lazagne.softwares.windows.credman import Credman
 from lazagne.softwares.windows.vault import Vault
 from lazagne.softwares.windows.cachedump import Cachedump
 from lazagne.softwares.windows.hashdump import Hashdump
 from lazagne.softwares.windows.lsa_secrets import LSASecrets
 from lazagne.softwares.windows.systemvault import Sysvault
+from lazagne.softwares.windows.windows_password import WindowsPassword
 
 
 def get_categories():
@@ -81,12 +81,12 @@ def get_modules():
 		Wifi(),
 
 		# Windows
-		DPAPIHash(),
 		Cachedump(),
 		Credman(),
 		Vault(),
 		Hashdump(),
 		LSASecrets(), 
-		Sysvault()
+		Sysvault(),
+		WindowsPassword(),
 	]
 	return moduleNames

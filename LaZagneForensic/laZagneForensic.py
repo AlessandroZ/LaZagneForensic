@@ -131,11 +131,11 @@ def launch_module(module, system_module=False):
 
 		if module[i].dpapi_used:
 			constant.module_to_exec_at_end.append(
-												{
-													'title'		: i,
-													'module' 	: module[i],
-												}
-)
+				{
+					'title'		: i,
+					'module' 	: module[i],
+				}
+			)
 			continue
 
 		# run module
@@ -182,20 +182,13 @@ def runModule(category_choosed, system_module=False):
 
 	if constant.module_to_exec_at_end:
 		if constant.user_dpapi:
-			password = ''
-			if not constant.user_dpapi.dpapi_ok:
-				# add username to check username equals passwords
-				constant.passwordFound.append(constant.username)
-				password = constant.user_dpapi.check_credentials(constant.passwordFound)
+			# add username to check username equals passwords
+			constant.passwordFound.append(constant.username)
+			constant.user_dpapi.check_credentials(constant.passwordFound)
 
-			if constant.user_dpapi.dpapi_ok:
-				if password:
-					# reload new object with correct password
-					constant.user_dpapi = Decrypt_DPAPI(password=password)
-				
-				for module in constant.module_to_exec_at_end:
-					for m in run_module(title=module['title'], module=module['module']):
-						yield m
+			for module in constant.module_to_exec_at_end:
+				for m in run_module(title=module['title'], module=module['module']):
+					yield m
 
 
 # Write output to file (json and txt files)

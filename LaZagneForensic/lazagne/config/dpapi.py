@@ -1,196 +1,141 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- 
-from lazagne.config.modules.blobdec import decrypt_encrypted_blob
-from lazagne.config.modules.preferred import display_masterkey
-from lazagne.config.modules.creddec import decrypt_user_cred
-from lazagne.config.modules.vaultdec import decrypt_vault
+
+from lazagne.config.DPAPI.masterkey import *
+from lazagne.config.DPAPI.registry import *
+from lazagne.config.DPAPI.credfile import *
+from lazagne.config.DPAPI.vault import *
+from lazagne.config.DPAPI.blob import *
+
 from lazagne.config.write_output import print_debug
 from lazagne.config.utils import build_path
 from lazagne.config.constant import *
-from lazagne.config.modules.DPAPI.Core import masterkey
-from lazagne.config.modules.DPAPI.Core import registry
-from lazagne.config.modules.DPAPI.Core import blob
-from modules.creddec import *
 import traceback
 import os
 
 class Decrypt_DPAPI():
 	def __init__(self, password=None, pwdhash=None):
-		self.sid 					= None
-		self.preferred_umkp 		= None
-		self.dpapi_ok 				= False
-		self.umkp 					= None
-		self.smkp 					= None
-		self.last_masterkey_file	= None
-		adding_missing_path 		= u''
+		self.sid 				= None
+		self.umkp 				= None
+		self.smkp 				= None
+		adding_missing_path 	= u''
 		
-		# -------------------------- User Information --------------------------
+		# User Information
 
 		path = build_path('DPAPI')
 		if constant.dump == 'local':
-			adding_missing_path 	= u'/Microsoft'
+			adding_missing_path = u'/Microsoft'
 
 		if path:
-			protect_folder = os.path.join(path, u'Roaming{path}/Protect'.format(path=adding_missing_path))
+			protect_folder 	= os.path.join(path, u'Roaming{path}/Protect'.format(path=adding_missing_path))
+			credhist_file 	= os.path.join(path, u'Roaming{path}/Protect/CREDHIST'.format(path=adding_missing_path))
+			
 			if os.path.exists(protect_folder):
 				for folder in os.listdir(protect_folder):
 					if folder.startswith('S-'):
 						self.sid = folder
+						break
 
-				masterkeydir 	= os.path.join(protect_folder, self.sid)
+				masterkeydir = os.path.join(protect_folder, self.sid)
 				if os.path.exists(masterkeydir):
-					# user master key pool
-					self.umkp = masterkey.MasterKeyPool()
-					
-					# load all master key files (not only the one contained on preferred)
-					self.umkp.loadDirectory(masterkeydir)
-
-					preferred_file = os.path.join(masterkeydir, 'Preferred')
-					if os.path.exists(preferred_file):
-						preferred_mk_guid 	= display_masterkey(open(preferred_file, 'rb'))
-						
-						# Preferred file contains the GUID of the last mastekey created
-						self.last_masterkey_file	= os.path.join(masterkeydir, preferred_mk_guid)
-						
-						# Be sure the preferred mk guid exists, otherwise take the one which have a similar name (sometimes an error occured retreiving the guid)
-						if not os.path.exists(self.last_masterkey_file):
-							for folder in os.listdir(masterkeydir):
-								if folder.startswith(preferred_mk_guid[:6]):
-									self.last_masterkey_file = os.path.join(masterkeydir, folder)
-
-						if os.path.exists(self.last_masterkey_file):
-							print_debug('DEBUG', u'Last masterkey created: {masterkefile}'.format(masterkefile=self.last_masterkey_file))
-							self.preferred_umkp = masterkey.MasterKeyPool()
-							self.preferred_umkp.addMasterKey(open(self.last_masterkey_file, 'rb').read())
-
-					credhist_path 	= os.path.join(path, 'Roaming{path}/Protect/CREDHIST'.format(path=adding_missing_path))
-					credhist		= credhist_path if os.path.exists(credhist_path) else None
-					
-					if credhist:
-						self.umkp.addCredhistFile(self.sid, credhist)
+					self.umkp = MasterKeyPool()
+					self.umkp.load_directory(masterkeydir)
+					self.umkp.add_credhist_file(sid=self.sid, credfile=credhist_file)
 					
 					if password:
-						if self.try_credential(password):
-							self.dpapi_ok = True
-						else:
-							print_debug('DEBUG', u'Password not correct: {password}'.format(password=password))
+						for r in self.umkp.try_credential(sid=self.sid, password=password):
+							print_debug('INFO', r)
 
 					elif pwdhash:
-						if self.umkp.try_credential_hash(self.sid, pwdhash.decode('hex')):
-							self.dpapi_ok = True
-						else:
-							print_debug('DEBUG', u'Hash not correct: {pwdhash}'.format(pwdhash=pwdhash))
+						for r in self.umkp.try_credential_hash(self.sid, pwdhash=pwdhash.decode('hex')):
+							print_debug('INFO', r)
 
-		# -------------------------- System Information --------------------------
+		# System Information
 
 		path = build_path('Hives')
 		if path:
-			system 		= os.path.join(path, 'SYSTEM')
-			security 	= os.path.join(path, 'SECURITY')
+			system 	 = os.path.join(path, 'SYSTEM')
+			security = os.path.join(path, 'SECURITY')
 			
 			if os.path.exists(system) and os.path.exists(security):
 				if os.path.isfile(system) and os.path.isfile(security):
-					reg 			= registry.Regedit()
-					secrets 		= None
-					try:
-						secrets 		= reg.get_lsa_secrets(security, system)
-					except:
-						print_debug('DEBUG', traceback.format_exc())
+					reg 	= Regedit()
+					secrets = reg.get_lsa_secrets(security, system)
 
 					if secrets:
 						dpapi_system 	= secrets.get('DPAPI_SYSTEM')["CurrVal"]
-						path 	= build_path('Dpapi_System')
+						path 			= build_path('Dpapi_System')
 						if path: 
-							masterkeydir = os.path.join(path, 'Protect', 'S-1-5-18', 'User')
+							masterkeydir = os.path.join(path, u'Protect', u'S-1-5-18', u'User')
 							if os.path.exists(masterkeydir):
-								self.smkp = masterkey.MasterKeyPool()
-								self.smkp.loadDirectory(masterkeydir)
-								self.smkp.addSystemCredential(dpapi_system)
-								self.smkp.try_credential_hash(None, None)
-
-	def try_credential(self, password):
-		try:
-			return self.umkp.try_credential(self.sid, password)
-		except:
-			return False
+								self.smkp = MasterKeyPool()
+								self.smkp.load_directory(masterkeydir)
+								self.smkp.add_system_credential(dpapi_system)
+								for r in self.smkp.try_system_credential():
+									print_debug('INFO', r)
 
 	def check_credentials(self, passwords):
-		# the password is tested if possible only on the last masterkey file created by the system (visible on the preferred file) to avoid false positive
-		# if tested on all masterkey files, it could retrieve a password without to be able to decrypt a blob (happenned on my host :))
-		if self.preferred_umkp:
-			self.umkp = self.preferred_umkp
+		for password in passwords:
+			for r in self.umkp.try_credential(sid=self.sid, password=password):
+				print_debug('INFO', r)
 
-		if self.umkp:
-			for password in passwords:
-				print_debug('INFO', u'Check password: {password}'.format(password=password))
-				if self.try_credential(password):
-					print_debug('INFO', u'User password found: {password}\n'.format(password=password))
-					self.dpapi_ok = True
-					return password
-
-		return False
-
-	def decrypt_blob(self, encrypted_password):
-		if self.dpapi_ok:
-			ok, msg = decrypt_encrypted_blob(self.umkp, encrypted_password)
-			if ok: 
-				return msg
-			else:
-				print_debug('DEBUG', u'{msg}'.format(msg=msg))
+	def manage_response(self, ok, msg):
+		if ok:
+			return msg
 		else:
-			print_debug('INFO', u'Passwords have not been retrieved. User password seems to be wrong ')
-		
-		return False
+			print_debug('DEBUG', u'{msg}'.format(msg=msg))
+			return False
 
-	def decrypt_cred(self, cred_file):
-		if self.dpapi_ok:
-			ok, msg = decrypt_user_cred(umkp=self.umkp, cred_file=cred_file)
-			if ok: 
-				return msg
-			else:
-				print_debug('DEBUG', u'{msg}'.format(msg=msg))
-		else:
-			print_debug('INFO', u'Passwords have not been retrieved. User password seems to be wrong ')
+	def decrypt_blob(self, dpapi_blob):
+		"""
+		Decrypt DPAPI Blob
+		"""
+		blob  	= DPAPIBlob(dpapi_blob)
+		ok, msg = blob.decrypt_encrypted_blob(mkp=self.umkp)
+		return self.manage_response(ok, msg)
 		
-		return False
+	def decrypt_cred(self, credfile):
+		""" 
+		Decrypt Credential Files
+		"""
+		c = CredFile(credfile)
+		ok, msg = c.decrypt(self.umkp)
+		return self.manage_response(ok, msg)
 		
 	def decrypt_vault(self, vaults_dir):
-		if self.dpapi_ok:
-			ok, msg = decrypt_vault(self.umkp, vaults_dir=vaults_dir)
-			if ok: 
-				return msg
-			else:
-				print_debug('DEBUG', u'File: {file}\n{msg}'.format(file=vaults_dir, msg=msg))
-		else:
-			print_debug('INFO', u'Passwords have not been retrieved. User password seems to be wrong ')
-		
-		return False
+		""" 
+		Decrypt Vault Files
+		"""
+		v = Vault(vaults_dir=vaults_dir)
+		ok, msg = v.decrypt(mkp=self.umkp)
+		return self.manage_response(ok, msg)
 
-	def get_DPAPI_hash(self, context='local'):
-		if self.umkp and self.last_masterkey_file:
-			self.umkp.get_john_hash(masterkeyfile=self.last_masterkey_file, sid=self.sid, context=context)
+	def get_dpapi_hash(self, context='local'):
+		"""
+		Retrieve DPAPI hash to bruteforce it using john or hashcat.
+		"""
+		return self.umkp.get_dpapi_hash(sid=self.sid)
+
+	def get_cleartext_password(self):
+		"""
+		Retrieve cleartext password associated to the preferred user maskterkey. 
+		This password should represent the windows user password. 
+		"""
+		return self.umkp.get_cleartext_password()
 
 	def decrypt_wifi_blob(self, key_material):
-		if self.smkp:
-			wblob 			= blob.DPAPIBlob(key_material.decode('hex'))
-			mks 			= self.smkp.getMasterKeys(wblob.mkguid)
-
-			for mk in mks:
-				if mk.decrypted:
-					wblob.decrypt(mk.get_key())
-					if wblob.decrypted:
-						return wblob.cleartext
-
-		return '<not decrypted>'
+		"""
+		Decrypt wifi password
+		"""
+		blob 	= DPAPIBlob(key_material.decode('hex'))
+		ok, msg = blob.decrypt_encrypted_blob(mkp=self.smkp)
+		return self.manage_response(ok, msg)
 
 	def decrypt_system_vault(self, vaults_dir):
-		if self.smkp:
-			ok, msg = decrypt_vault(self.smkp, vaults_dir=vaults_dir)
-			if ok:
-				return msg
-			else:
-				print_debug('DEBUG', u'File: {file}\n{msg}\n'.format(file=vaults_dir, msg=msg))
-		else:
-			print_debug('INFO', u'Passwords have not been retrieved. User password seems to be wrong ')
-		
-		return False
+		"""
+		Decrypt System Vault
+		"""
+		v = Vault(vaults_dir=vaults_dir)
+		ok, msg = v.decrypt(mkp=self.smkp)
+		return self.manage_response(ok, msg)
+

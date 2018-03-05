@@ -12,7 +12,6 @@ class Vault(ModuleInfo):
 
 	def run(self, software_name=None):
 		pwdFound = []
-
 		path = build_path('DPAPI')
 		if path:
 			vaults_directory = os.path.join(path, u'Local', u'Vault')
@@ -20,9 +19,10 @@ class Vault(ModuleInfo):
 				for vault_directory in os.listdir(vaults_directory):
 					vault_directory = os.path.join(vaults_directory, vault_directory)
 					try:
+						print_debug('INFO', u'Decrypting the Vault directory: {directory}'.format(directory=vault_directory))
 						result = constant.user_dpapi.decrypt_vault(vault_directory)
 						if result:
-							pwdFound += result
+							pwdFound.append(result)
 					except:
 						print_debug('DEBUG', traceback.format_exc())
 
