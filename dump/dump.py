@@ -43,6 +43,7 @@ user_softwares = [
 						'name' 	: 'Firefox',
 						'paths'	: [u'{drive}:\\Users\\{user}\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles'],
 						'files'	: [
+									u'key4.db',
 									u'key3.db',
 									u'logins.json',
 									u'cert8.db'

