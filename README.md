@@ -8,7 +8,7 @@ The __LaZagne project__ is back !!!
 
 [LaZagne](https://github.com/AlessandroZ/LaZagne) uses an internal Windows function called *CryptUnprotectData* to decrypt user passwords. This API should be called on the victim user session, otherwise, it does not work. If the computer has not been started (when the analysis is realized on an offline mounted disk), or if we do not want to drop a binary on the remote host, no passwords can be retrieved. 
 
-[LaZagneForensic](https://github.com/AlessandroZ/LaZagneForensic) has been created to avoid this problem. This work has been mainly inspired by the awesome work done by *Jean-Michel Picod* for [DPAPICK](https://bitbucket.org/jmichel/dpapick) and *Francesco Picasso* for [Windows DPAPI laboratory](https://github.com/dfirfpi/dpapilab). 
+[LaZagneForensic](https://github.com/AlessandroZ/LaZagneForensic) has been created to avoid this problem. This work has been mainly inspired by the awesome work done by *Jean-Michel Picod* and *Elie Bursztein* for [DPAPICK](https://bitbucket.org/jmichel/dpapick) and *Francesco Picasso* for [Windows DPAPI laboratory](https://github.com/dfirfpi/dpapilab). 
 
 __Note__: The main problem is that to decrypt these passwords, the user Windows passwords is needed. 
 
@@ -82,7 +82,7 @@ Do not hesitate to support my work doing a donation, I will appreciate a lot:
 
 Special thanks
 ----
-* Jean-Michel Picod for [DPAPICK](https://bitbucket.org/jmichel/dpapick)
+* Jean-Michel Picod and Elie Bursztein for [DPAPICK](https://bitbucket.org/jmichel/dpapick)
 * Francesco Picasso for [Windows DPAPI laboratory](https://github.com/dfirfpi/dpapilab)
 * Jean-Christophe Delaunay - Jiss/Fist0urs from the Synacktiv team for their [work](https://www.synacktiv.com/ressources/univershell_2017_dpapi.pdf)
 
