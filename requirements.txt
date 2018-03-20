@@ -1,4 +1,4 @@
 pycrypto
 pyasn1
-construct
+construct==2.9.39
 https://github.com/williballenthin/python-registry/archive/master.zip
