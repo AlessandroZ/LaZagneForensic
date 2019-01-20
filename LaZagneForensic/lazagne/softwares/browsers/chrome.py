@@ -63,6 +63,8 @@ class Chrome(ModuleInfo):
 		
 		
 	def cookie_enum(self,path,profile):
+		
+		username = os.path.basename(os.path.dirname(path))
 
 		cookieFound = []
 	
