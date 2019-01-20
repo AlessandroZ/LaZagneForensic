@@ -7,6 +7,7 @@ from lazagne.config.constant import *
 import traceback
 import sqlite3
 import os
+import json
 
 class Chrome(ModuleInfo):
 	def __init__(self):
