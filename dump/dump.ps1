@@ -43,22 +43,25 @@ function ManageMozilla($root, $user, $d){
 function ManageChromeProfile($root, $user, $d)
 {
 
-	$chrome_software_path = $d['paths'].replace('[USER]', $user)
 
-	if (Test-Path $chrome_software_path) {
-		$chrome_folder = $root + '\' + $d['name']
-		CreateDir($mozilla_folder)
+	$chrome_folder = $root + '\' + $d['name']
 
-		$profiles = Get-ChildItem -Path $chrome_software_path
-		foreach ($profile in $profiles.Name)
+	$path 	= $d['paths'].replace('[USER]', $user)
+	$paths 	= Get-ChildItem -Path $path -Filter $d['files'][0] -Recurse -ErrorAction SilentlyContinue -Force
+	
+	If ($paths -ne $null){
+		CreateDir($chrome_folder)
+		foreach ($p in $paths.Directory.Name)
 		{
-			$profile_folder = $chrome_folder + '\' + $profile
+			$profile_folder = $chrome_folder + '\' + $p
 			CreateDir($profile_folder)
+			
+
 			for ($i=0; $i -lt $d['files'].length; $i++) {
-				$path = $d['paths'].replace('[USER]', $user) + '\' + $profile + '\' + $d['files'][$i]
+				$src = $d['paths'].replace('[USER]', $user) + '\' + $p + '\' + $d['files'][$i]
 				$dst = $profile_folder + '\' + $d['files'][$i]
 
-				CopyFile $path $dst
+				CopyFile $src $dst
 			}
 		}
 	}
