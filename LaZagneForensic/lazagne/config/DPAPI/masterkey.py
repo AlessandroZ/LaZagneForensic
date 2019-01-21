@@ -177,13 +177,13 @@ class MasterKeyPool():
 		"""
 		Returns an array of Masterkeys corresponding to the given GUID.
 		"""
-		return self.keys.get(guid, [])['keys']
+		return self.keys.get(guid, {}).get('keys')
 
 	def get_password(self, guid):
 		"""
 		Returns the password found corresponding to the given GUID.
 		"""
-		return self.keys.get(guid, [])['password']
+		return self.keys.get(guid, {}).get('password')
 
 	def add_credhist_file(self, sid, credfile):
 		"""
