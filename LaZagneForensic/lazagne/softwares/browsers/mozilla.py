@@ -355,6 +355,9 @@ class Mozilla(ModuleInfo):
 		path 	 = build_path(software_name)
 		if path:
 			for profile in os.listdir(path):
+				if profile == '.DS_Store':
+					continue
+
 				profile = os.path.join(path, profile)
 				print_debug('INFO', u'Profile path found: {profile}'.format(profile=profile))
 	
