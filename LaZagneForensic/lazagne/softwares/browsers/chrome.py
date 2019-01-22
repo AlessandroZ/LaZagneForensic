@@ -12,6 +12,20 @@ from shutil import copyfile
 
 
 class Chrome(ModuleInfo):
+	
+# Options
+
+	# Passwords
+	decrypt_passwords = True
+	# Cookies
+	create_updated_db = False
+	create_decrypted_db_json = False
+	# History
+	create_history_json = False
+	
+	
+	
+	
 	def __init__(self):
 		ModuleInfo.__init__(self, name='chrome', category='browsers', dpapi_used=True)
 
@@ -19,12 +33,18 @@ class Chrome(ModuleInfo):
 		path = build_path(software_name)
 		if path:
 			pwdFound = []
+			pwdNotDecryptable = 0
+			pwdNotSaved = 0
 			for profile in os.listdir(path):
 				
 				# Cookies Decrypt Methods
 				self.cookie_enum(path,profile)
+				# Cookies Decrypt Methods
+				self.export_history(path,profile)
 				
 				# Password Methods
+				if not self.decrypt_passwords:
+					continue
 				
 				database_path = os.path.join(path, profile, u'Login Data')
 				if not os.path.exists(database_path):
@@ -43,7 +63,7 @@ class Chrome(ModuleInfo):
 					continue 
 				
 				# Get the results
-				cursor.execute('SELECT action_url, username_value, password_value FROM logins')
+				cursor.execute('SELECT action_url, username_value, password_value, blacklisted_by_user FROM logins')
 				for result in cursor.fetchall():
 					try:
 						# Decrypt the Password
@@ -56,26 +76,42 @@ class Chrome(ModuleInfo):
 									'Password'	: password
 								}
 							)
+						else:
+							if result[3] is 1:
+								pwdNotSaved += 1
+								print_debug('WARNING', u'Blacklisted by User: Site: {url}'.format(url=result[0]))
+							else:
+								pwdNotDecryptable += 1
+								print_debug('WARNING', u"Couldn't decrypt: Site: {0}, User: {1}".format(result[0],result[1]))
 					except Exception,e:
 						print_debug('DEBUG', traceback.format_exc())
 				
 				conn.close()
+			
+			if pwdNotDecryptable is not 0:
+				print_debug('FAILED', u'Could not decrypt {numberNotFound} Chrome-Passwords'.format(numberNotFound=pwdNotDecryptable))
+			if pwdNotSaved is not 0:
+				print_debug('WARNING', u'{numberNotFound} Chrome-Passwords have been blacklisted by user'.format(numberNotFound=pwdNotSaved))
+			
+
+
 
 			return pwdFound
 
 		
-		
 	def cookie_enum(self,path,profile):
+		
+		# Check if enabled
+		if not (self.create_updated_db or self.create_decrypted_db_json):
+			print_debug('DEBUG', u'Cookie dump not enabled')
+			return
+		
 		
 		username = os.path.basename(os.path.dirname(path))
 
 		cookieFound = []
 		
 		# Will create a copy of the cookies and replace the encrypted value with the decrypted one
-		create_updated_db = False
-		
-		export_decrypted_db_json = True
-		
 	
 		cookie_database_path = os.path.join(path, profile, u'Cookies')
 	
@@ -88,7 +124,7 @@ class Chrome(ModuleInfo):
 		
 		
 
-		if create_updated_db:
+		if self.create_updated_db:
 			
 			try:
 				# Make Copy of DB
@@ -134,7 +170,7 @@ class Chrome(ModuleInfo):
 
 
 	
-		if export_decrypted_db_json:
+		if self.create_decrypted_db_json:
 		
 			# Connect to the Database
 			try:
@@ -145,6 +181,7 @@ class Chrome(ModuleInfo):
 				print_debug('DEBUG', traceback.format_exc())
 				return
 		
+
 
 			#cursor.execute('SELECT host_key, name, value, encrypted_value FROM cookies')
 			cursor.execute('SELECT creation_utc, host_key, name, value, path, expires_utc, is_secure, is_httponly, last_access_utc, has_expires, is_persistent, priority, encrypted_value, firstpartyonly FROM cookies')
@@ -185,3 +222,64 @@ class Chrome(ModuleInfo):
 				
 			return
 	
+
+	def export_history(self,path,profile):
+		
+		# Check if enabled
+		if not self.create_history_json:
+			print_debug('DEBUG', u'History export not enabled')
+			return
+		
+		# Start
+		
+		history_database_path = os.path.join(path, profile, u'History')
+		
+		username = os.path.basename(os.path.dirname(path))
+		
+		historyFound = []
+		
+		# Check if file exists
+		
+		if not os.path.exists(history_database_path):
+			print_debug('DEBUG', u'History database not found: {database_path}'.format(database_path=history_database_path))
+			return
+		else:
+			print_debug('DEBUG', u'History database found: {database_path}'.format(database_path=history_database_path))
+
+		# Connect to the Database
+		try:
+			conn 	= sqlite3.connect(history_database_path)
+			cursor 	= conn.cursor()
+		except Exception,e:
+			print_debug('ERROR', u'An error occured opening the history file')
+			print_debug('DEBUG', traceback.format_exc())
+			return
+
+		#cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+	
+
+		cursor.execute('SELECT title, url, visit_count, last_visit_time FROM urls')
+
+		for result in cursor.fetchall():
+			try:
+				historyFound.append(
+							{
+								'Title'			: result[0],
+								'URL'			: result[1],
+								'Visits'		: result[2],
+								'Last Visit'	: result[3]
+							}
+									)
+			except Exception,e:
+				print_debug('DEBUG', traceback.format_exc())
+			
+		conn.close()
+		
+		with open('history-%s-%s.json' % (username, profile), 'w') as fp:
+				json.dump(historyFound, fp, indent=2)
+					
+					
+		return
+
+
+
