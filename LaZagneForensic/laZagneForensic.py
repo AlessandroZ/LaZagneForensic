@@ -218,7 +218,7 @@ def get_user_list_on_filesystem():
 	all_users = os.listdir(user_path)
 
 	# Remove default users
-	for user in ['All Users', 'Default User', 'Default', 'Public', 'desktop.ini']:
+	for user in ['All Users', 'Default User', 'Default', 'Public', 'desktop.ini', '.DS_Store']:
 		if user in all_users:
 			all_users.remove(user)
 
