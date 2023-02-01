@@ -14,6 +14,7 @@ from system import *
 import hashlib
 import crypto
 import os
+from Crypto.Hash import MD4
 
 class MasterKey():
 	"""
@@ -41,7 +42,12 @@ class MasterKey():
 		Simply computes the corresponding key, then calls self.decrypt_with_hash()
 		"""	
 		for algo in ["sha1", "md4"]:
-			self.decrypt_with_hash(sid=sid, pwdhash=hashlib.new(algo, pwd.encode("UTF-16LE")).digest())
+			encoded=pwd.encode("UTF-16LE")
+			if (algo == "sha1"):
+				pwdhash=hashlib.new(algo, encoded).digest()
+			elif (algo == "md4"):
+				pwdhash=MD4.new(encoded).digest()
+			self.decrypt_with_hash(sid=sid, pwdhash=pwdhash)
 			if self.decrypted:
 				break
 
