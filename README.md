@@ -14,8 +14,19 @@ __Note__: The main problem is that to decrypt these passwords, the user Windows 
 
 Installation
 ----
-```
-pip install -r requirements.txt
+
+- **Requires python2 (Not compatible with python3)**
+- **Requires pip2**: if not installed :
+  ```bash
+  sudo wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
+  sudo python2 ./get-pip.py
+  ```
+
+```bash
+sudo apt install python2-dev
+pip2 install markerlib
+pip2 install distribute
+pip2 install -r requirements.txt
 ```
 
 Usage
